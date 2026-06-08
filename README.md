@@ -1,15 +1,17 @@
-# Contribution [#]: [Issue Title]
-
-**Contribution Number:** [1 / 2 / 3]  
-**Student:** [Your Name]  
-**Issue:** [GitHub issue link]  
-**Status:** [Phase I / Phase II / Phase III / Phase IV] [In Progress / Complete]
+# Contribution [#]: Provide email address for reaching PSF Board members
+ 
+**Contribution Number:** #2453 
+**Student:** Gezahegne Yirefu  
+**Issue:** https://github.com/python/pythondotorg/issues/2453   
+**Status:** Phase I Complete
 
 ---
 
 ## Why I Chose This Issue
 
-[1-2 paragraphs explaining why this issue interests you, how it matches your skills/learning goals, what you hope to learn]
+This issue interests me because it focuses on improving communication and accessibility on the Python website. The problem is clear and meaningful: visitors who want to contact PSF Board members should be able to easily find the right email address or contact information. I like that this issue is specific, practical, and connected to a real open-source community that many developers rely on.
+
+This issue also matches my current skills and learning goals because it appears to involve website content, backend/frontend structure, and working inside an established Python/Django-based project. I have experience with programming and web-related technologies, and I want to become more comfortable navigating a large open-source codebase, understanding how content is managed, making a focused change, testing it locally, and submitting a clear pull request. Through this issue, I hope to learn more about contributing to a professional open-source project, following contribution guidelines, and communicating with maintainers effectively.
 
 ---
 
