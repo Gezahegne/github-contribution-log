@@ -1,17 +1,19 @@
 # Contribution [#]: Provide email address for reaching PSF Board members
  
-**Contribution Number:** #2453 
+**Contribution Number:** #14909 
 **Student:** Gezahegne Yirefu  
-**Issue:** https://github.com/python/pythondotorg/issues/2453   
+**Issue:** https://github.com/ggml-org/llama.cpp/issues/14909 
 **Status:** Phase I Complete
 
 ---
 
 ## Why I Chose This Issue
 
-This issue interests me because it focuses on improving communication and accessibility on the Python website. The problem is clear and meaningful: visitors who want to contact PSF Board members should be able to easily find the right email address or contact information. I like that this issue is specific, practical, and connected to a real open-source community that many developers rely on.
+I chose the ABS operation for the OpenCL backend because it looks like a good beginner-friendly contribution to the llama.cpp codebase. The operation itself is simple to understand: it takes an input value and returns its absolute value. Since it is a basic unary operation, I feel I can focus more on learning how backend operations are implemented in llama.cpp without getting overwhelmed by a very complex algorithm.
 
-This issue also matches my current skills and learning goals because it appears to involve website content, backend/frontend structure, and working inside an established Python/Django-based project. I have experience with programming and web-related technologies, and I want to become more comfortable navigating a large open-source codebase, understanding how content is managed, making a focused change, testing it locally, and submitting a clear pull request. Through this issue, I hope to learn more about contributing to a professional open-source project, following contribution guidelines, and communicating with maintainers effectively.
+This issue also matches my current learning goals in the CodePath AI301 program. I want to get more comfortable reading a large open-source C/C++ codebase, understanding how different backends are organized, and making a small but meaningful contribution. Implementing ABS for OpenCL will help me learn how ggml operations are mapped to backend-specific kernels, how to test backend support using test-backend-ops, and how to prepare a focused pull request.
+
+I also chose this item because it appears to be available: it is marked as not implemented in the backend support table, and I did not find an existing open request or pull request specifically for ABS in OpenCL. This makes it a good issue to claim because the scope is clear, the expected result is testable, and the contribution would fill a real missing piece in the project.
 
 ---
 
