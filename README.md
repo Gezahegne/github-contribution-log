@@ -21,19 +21,27 @@ I also chose this item because it appears to be available: it is marked as not i
 
 ### Problem Description
 
-[In your own words, what's broken or missing?]
+What's missing is that GGML_OP_EXPM1 has no SYCL kernel registered. 
 
 ### Expected Behavior
 
-[What should happen?]
+SYCL dispatch for expm1 needs to be added in the SYCL backend. All 8 test cases should run and pass instead of being skipped. Concretely:
+
+Each EXPM1 variant should execute a SYCL kernel that computes exp(x) - 1 element-wise on the GPU
+Results should be compared against the CPU reference output within a tolerance threshold
+The report should show 8/8 tests passed instead of 0/0
+"not supported" should never appear — the backend should claim the op and execute it
+Right now the SYCL backend is simply not registering a handler for GGML_OP_EXPM1, so the test harness sees it as unsupported and skips it rather than running it.
 
 ### Current Behavior
 
-[What actually happens?]
+The SYCL backend reports not supported for every EXPM1 test case, so all 8 are skipped — 0 tests run, 0 tested, 0 verified. The backend still exits with OK because skipped ops aren't counted as failures.
 
 ### Affected Components
 
-[Which parts of the codebase are involved?]
+ggml/src/ggml-sycl/element_wise.cpp	=> Add op_expm1 kernel, ggml_sycl_op_expm1 dispatch, and ggml_sycl_expm1 wrapper
+ggml/src/ggml-sycl/element_wise.hpp	=> Declare ggml_sycl_expm1()
+ggml/src/ggml-sycl/ggml-sycl.cpp	=> Add GGML_UNARY_OP_EXPM1 case in the unary dispatch switch (~line 4557)
 
 ---
 
@@ -41,13 +49,63 @@ I also chose this item because it appears to be available: it is marked as not i
 
 ### Environment Setup
 
-[Notes on setting up your local development environment - challenges you faced, how you solved them]
+Phase 1 — Prerequisites setup
+1. Installed Git & CMake via winget
+Used winget install Git.Git and winget install Kitware.CMake. Both installed successfully.
+Challenge
+After installing CMake, running cmake in the same PowerShell session gave "not recognized" error.
+Fix
+Restarted VS Code / terminal so the new PATH entries took effect. CMake was installed correctly — the session just needed a refresh.
+
+2. Installed Visual Studio 2022 Community
+Required for the MSVC C++ compiler (cl.exe) and Windows SDK.
+Challenge
+VS was installed but the C++ workload was missing — cl.exe not found even after activating Dev Shell.
+Fix
+Opened the VS Installer → Modify → checked "Desktop development with C++" workload including MSVC tools, Windows 11 SDK, and CMake tools for Windows.
+Phase 2 — Build environment build
+
+3. Activating the Developer PowerShell
+Regular PowerShell doesn't have cl.exe on PATH. Must use Developer PowerShell for VS 2022 or manually import it via Enter-VsDevShell.
+Challenge
+First cmake run hit: NMake Makefiles — no such file or directory and CMAKE_CXX_COMPILER not set.
+Fix
+Switched to the VS Dev Shell using Import-Module + Enter-VsDevShell with -DevCmdArguments "-arch=x64". Always run cmake from this shell.
+Challenge
+Second cmake run: "generator does not match previously used: NMake Makefiles".
+Fix
+Deleted the stale build/ folder with Remove-Item -Recurse -Force build and re-ran cmake. Lesson: always wipe build folder when switching generators.
+Phase 3 — Intel Arc GPU (SYCL) GPU
+
+4. Installed Intel oneAPI Base Toolkit
+Provides the SYCL compiler (icx) and oneMKL math library. Needed instead of CUDA for Intel Arc GPUs. Used the latest release, not the archive page.
+Challenge
+CMake ignored -DCMAKE_CXX_COMPILER=icx and fell back to MSVC, causing "C++ compiler lacks SYCL support".
+Fix
+The setvars.bat env vars weren't loading into PowerShell via &. Fixed by piping cmd /c setvars.bat && set through ForEach-Object to explicitly import each variable into the PowerShell process.
+Challenge
+Build error: "Could not expand ICInstallDir — platform toolset set to invalid version" when using -G "Visual Studio 17 2022" with icx.
+Fix
+Switched generator from Visual Studio to Ninja (-G "Ninja"). Ninja calls icx directly without needing VS toolset integration, avoiding the ICInstallDir lookup entirely.
+
+5. Successful build with SYCL
+Final cmake flags: -DGGML_SYCL=ON -DGGML_CUDA=OFF -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=icx -G "Ninja". Executables landed in build/bin/.
 
 ### Steps to Reproduce
 
-1. [Step 1]
-2. [Step 2]
-3. [Observed result]
+Step 1 — See the full op coverage map:
+powershell.\build\bin\test-backend-ops.exe --show-coverage 2>&1 | Tee-Object coverage.txt
+Step 2 — See which ops SYCL specifically supports vs missing:
+powershell.\build\bin\test-backend-ops.exe support -b SYCL0 2>&1 | Tee-Object sycl_support.txt
+Step 3 — Pick one ❌ op from the output and reproduce the missing op:
+powershell# Example: try running a specific op test on SYCL
+.\build\bin\test-backend-ops.exe test -b SYCL0 -o POOL_1D 2>&1
+Step 4 — The "observed result" for a missing op will look like one of:
+SKIP: op not supported on this backend
+# or
+FAIL: ...
+# or the op simply won't run at all
+
 
 ### Reproduction Evidence
 
