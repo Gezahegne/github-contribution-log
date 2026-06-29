@@ -184,7 +184,7 @@ https://github.com/gezahegne/llama.cpp/tree/opencl-abs
 
 **Evaluate:** [How will you verify it works?]
 
----
+--- Runnint test cases
 
 ## Testing Strategy
 
@@ -207,10 +207,6 @@ https://github.com/gezahegne/llama.cpp/tree/opencl-abs
 
 ## Implementation Notes
 
-### Week [X] Progress
-
-[What you built this week, challenges faced, decisions made]
-
 ### Week [Y] Progress
 
 [Continue documenting as you work]
@@ -218,16 +214,51 @@ https://github.com/gezahegne/llama.cpp/tree/opencl-abs
 ### Code Changes
 
 - **Files modified:** [List]
+-   - `ggml/src/ggml-opencl/kernels/abs.cl` (new, +113) — six ABS kernels: `f32`, `f32_4`, `f32_nc`, `f16`, `f16_4`, `f16_nc`
+  - `ggml/src/ggml-opencl/ggml-opencl.cpp` (+127) — kernel handles, `// abs` loading block, `ggml_cl_abs()` dispatch, `GGML_UNARY_OP_ABS` op routing, `supports_op` case
+  - `ggml/src/ggml-opencl/CMakeLists.txt` (+1) — register `abs` in `GGML_OPENCL_KERNELS`
+  - `docs/ops.md` — ABS OpenCL cell `❌ → ✅`
+  - `docs/ops/OpenCL.csv` — 8 ABS rows marked supported
 - **Key commits:** [Links to important commits]
+-   - [`9577551`](https://github.com/gezahegne/llama.cpp/commit/957755105d5cd05ca168b95b577e6eb1de9a69ca) — Test cases 1 & 2: f16 contiguous kernels + infra (dispatch, loading, supports_op)
+  - [`0896789`](https://github.com/gezahegne/llama.cpp/commit/0896789c59ece76c86f9780f06c4417cfbac9021) — finish ABS: f32 + non-contiguous kernels (cases 3–8)
+  - [`58fae0a`](https://github.com/gezahegne/llama.cpp/commit/58fae0a106df4ff5d19af2a7f3bde1f943be0fdc) — docs: mark ABS supported in `ops.md` / `OpenCL.csv`
 - **Approach decisions:** [Why you chose certain approaches]
-
+  - **Mirrored the existing `EXPM1` op** rather than inventing a new pattern — it's a structurally identical element-wise unary op already in the OpenCL backend, so reusing its layout keeps the code consistent with backend conventions; only the per-element math changes (`exp(x) - 1` → `fabs(x)`).
+  - **Six kernel variants** matching `EXPM1`'s handling: vectorized `float4`/`half4` (`_4`) for contiguous tensors when `nelements % 4 == 0`, scalar otherwise, and strided (`_nc`) kernels for non-contiguous inputs — covering all `test-backend-ops` shapes/layouts.
+  - **`fabs()` builtin** for both `float` and `half` (correct and exact for `|x|`).
+  - **`supports_op` returns `F32 || F16`**, identical to `EXPM1`, so the scheduler only routes supported types to the backend.
+  - **Validated incrementally** against the CPU reference via `test-backend-ops -o ABS` (8/8 cases) with no regressions in the full OpenCL suite.
 ---
 
 ## Pull Request
 
-**PR Link:** [GitHub PR URL when submitted]
+**PR Link:** [[GitHub PR URL when submitted]]
+(https://github.com/ggml-org/llama.cpp/pull/25115)
 
 **PR Description:** [Draft or final PR description - much of the content above can be adapted]
+Adds support for the `ABS` unary operation (`y = |x|`) to the OpenCL backend.
+`ABS` was supported on CPU, CUDA, Metal, SYCL, Vulkan, WebGPU and CANN, but not
+on OpenCL — graphs containing an `ABS` node could not run that node on an OpenCL
+device. This implements it for `F32` and `F16`, contiguous and non-contiguous
+tensors.
+The implementation mirrors the existing `EXPM1` op (same element-wise unary
+structure); only the per-element math differs (`exp(x) - 1` → `fabs(x)`).
+## Changes
+- `ggml/src/ggml-opencl/kernels/abs.cl` (new): 6 kernels —
+  `kernel_abs_f32`, `kernel_abs_f32_4`, `kernel_abs_f32_nc`,
+  `kernel_abs_f16`, `kernel_abs_f16_4`, `kernel_abs_f16_nc`.
+- `ggml/src/ggml-opencl/CMakeLists.txt`: register `abs` in `GGML_OPENCL_KERNELS`.
+- `ggml/src/ggml-opencl/ggml-opencl.cpp`:
+  - declare the 6 `cl_kernel kernel_abs_*` handles in the backend context,
+  - load them in a new `// abs` program block,
+  - add the `ggml_cl_abs()` dispatch function (contiguous fast path with `_4`
+    vectorization when `nelements % 4 == 0`, otherwise scalar; `_nc` for
+    non-contiguous inputs),
+  - route `GGML_UNARY_OP_ABS` to `ggml_cl_abs`,
+  - return `true` for `GGML_UNARY_OP_ABS` (F32/F16) in `supports_op`.
+- `docs/ops.md`: regenerated — OpenCL `ABS` cell flips `❌ → ✅`.
+
 
 **Maintainer Feedback:**
 - [Date]: [Summary of feedback received]
