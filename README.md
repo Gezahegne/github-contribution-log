@@ -263,10 +263,13 @@ structure); only the per-element math differs (`exp(x) - 1` → `fabs(x)`).
 **Maintainer Feedback:**
 - [Date]: [Summary of feedback received]
 - [Date]: [How you addressed it]
+- [7/8/2026]: Maybe also remove the ops .csv and .md from this PR - I think we can do a separate one to update ops support stats.
+- [7/15/2026]: Removed the mentioned file and submitted updated code rebasing from main. 
+- 
 
 **Status:** [Awaiting review / Iterating / Approved / Merged]
 
----
+---Iterating
 
 ## Learnings & Reflections
 
