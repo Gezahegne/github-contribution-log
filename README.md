@@ -270,21 +270,34 @@ structure); only the per-element math differs (`exp(x) - 1` → `fabs(x)`).
 **Status:** [Awaiting review / Iterating / Approved / Merged]
 
 ---Iterating
+[7/16/2026] My code got merged with the main. 
 
 ## Learnings & Reflections
-
+Contributing to a large open-source project is as much about process as code. The actual ABS implementation was small; most of the effort went into environment setup, understanding existing patterns, clean git history, and following project rules. I learned to root-cause problems (the "CMake error" was really an antivirus issue) rather than fix symptoms, and to always establish a baseline before changing code.
 ### Technical Skills Gained
 
 [What you learned technically]
+Building llama.cpp/ggml from source with CMake + Ninja + a MinGW/GCC toolchain on Windows
+The ggml OpenCL backend architecture: kernels (.cl), kernel loading, op dispatch, and supports_op
+Writing OpenCL kernels (scalar + vectorized float4/half4 + strided non-contiguous)
+Backend validation with test-backend-ops against a CPU reference
+Git workflow for OSS: fork/upstream remotes, rebasing onto master, resolving conflicts, squashing, --force-with-lease
 
 ### Challenges Overcome
 
 [What was hard and how you solved it]
+Norton antivirus breaking the build three ways (TLS interception, blocked executables, cert errors) — diagnosed and worked around each
+Getting the Intel Arc GPU to actually register in OpenCL (GGML_OPENCL_USE_ADRENO_KERNELS=OFF)
+A meaningful rebase conflict requiring me to keep upstream's fix and my change
+Cleaning stray files out of the PR to get a focused, reviewable diff
 
 ### What I'd Do Differently Next Time
 
 [Reflection on your process]
-
+Set up a clean, verified toolchain (and antivirus exclusions) before starting, not mid-task
+Keep the branch tidy from the first commit — avoid committing helper/output files, so no cleanup/squash is needed later
+Decide PR scope up front (code vs. auto-generated docs) instead of splitting after the fact
+Read the project's CONTRIBUTING.md / AGENTS.md first, especially the AI-usage and contribution rules
 ---
 
 ## Resources Used
